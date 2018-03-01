@@ -1,0 +1,80 @@
+import datetime
+import unittest
+from unittest import mock
+
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.backends import default_backend
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+
+from docker_easyenroll.store import LocalCertificateStore
+from docker_easyenroll.primitives import generate_private_key
+from docker_easyenroll.utils import is_signed_by
+from docker_easyenroll import client
+
+
+class TestClient(unittest.TestCase):
+
+    @mock.patch('docker_easyenroll.client.socket')
+    @mock.patch('docker_easyenroll.client.ssl')
+    @mock.patch('docker_easyenroll.client.requests')
+    def test_enrollment(self, requests, ssl, socket):
+        backend = default_backend()
+
+        private_key = generate_private_key()
+
+        subject = issuer = x509.Name([
+            x509.NameAttribute(NameOID.COMMON_NAME, "DOCKER-ENROLLMENT"),
+        ])
+
+        cert = x509.CertificateBuilder().\
+            subject_name(subject).\
+            issuer_name(issuer).\
+            public_key(private_key.public_key()).\
+            serial_number(x509.random_serial_number()).\
+            not_valid_before(datetime.datetime.utcnow()).\
+            not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=10)).\
+            add_extension(
+                x509.SubjectAlternativeName([x509.DNSName('localhost')]),
+                critical=False
+            ).\
+            sign(private_key, hashes.SHA256(), backend)
+
+        ssl.wrap_socket.return_value.getpeercert.return_value = \
+            cert.public_bytes(serialization.Encoding.DER)
+
+        store = LocalCertificateStore('/tmp')
+        client.ensure_server_enrolled(store, '8.8.8.8')
+
+        assert requests.post.call_count == 1
+        args, kwargs = requests.post.call_args_list[0]
+
+        # We should only be connecting to addresses retrieved from etcd
+        assert args[0] == 'https://8.8.8.8:2375'
+
+        # We must POST a valid certificate to the docker we are adopting
+        assert kwargs['json']['certificate'].startswith('-----BEGIN CERTIFICATE-----\n')
+        assert kwargs['json']['certificate'].endswith('\n-----END CERTIFICATE-----\n')
+
+        new_cert = x509.load_pem_x509_certificate(
+            kwargs['json']['certificate'].encode('utf-8'),
+            default_backend()
+        )
+
+        # New certificate must be for the same system we connected to
+        assert new_cert.public_key().public_numbers() == cert.public_key().public_numbers()
+
+        # The cert issued by our API must be signed by the right cert/key
+        issuer = store.get_certificate('ca')
+        assert is_signed_by(new_cert, issuer)
+
+        # We haven't signed its certificate yet, so we can't verify the cert of
+        # the Docker we are adopting
+        assert kwargs['verify'] is False
+
+        # We *must* use our SSL client verification so that the Docker we are
+        # are adopting trusts us
+        assert kwargs['cert'] == (
+            store.get_certificate_path('client'),
+            store.get_private_key_path('client'),
+        )
