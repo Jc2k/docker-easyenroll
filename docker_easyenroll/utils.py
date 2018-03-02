@@ -39,10 +39,6 @@ def get_basic_certificate(public_key, days=365*10, ca=False, key_usage=None):
     return builder
 
 
-def serialize_certificate(certificate):
-    return certificate.public_bytes(serialization.Encoding.PEM).decode('utf-8')
-
-
 def fingerprint(cert):
     return ':'.join('%02x' % c for c in cert.fingerprint(hashes.SHA256()))
 
