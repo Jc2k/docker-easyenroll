@@ -112,10 +112,10 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             backend=backend,
         )
 
-        if not self.validator.verify(cert):
+        if not self.validator.validate(cert):
             self.send_error(401, 'Invalid certificate')
 
-        self.store.set('server', cert)
+        self.store.set_certificate('server', cert)
 
         self.send_response(200)
         self.end_headers()
@@ -127,23 +127,27 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
     def do_HEAD(self):
         self.send_error(404, "File not found")
 
+    @classmethod
+    def factory(cls, store, validator):
+        _store, _validator = store, validator
 
-def listen_until_enrollment(store, verifier):
+        class RequestHandler(cls):
+            store = _store
+            validator = _validator
+
+        return RequestHandler
+
+
+def listen_until_enrollment(store, validator):
     if store.has_certificate('server'):
         return
 
-    private_key = get_private_key()
-    get_selfsigned_certificate(private_key)
-
-    def request_handler(*args, **kwargs):
-        handler = RequestHandler(*args, **kwargs)
-        handler.store = store
-        handler.verifier = verifier
-        return handler
+    private_key = get_private_key(store, 'server')
+    get_selfsigned_certificate(store, private_key)
 
     httpd = http.server.HTTPServer(
         ('localhost', 2375),
-        request_handler,
+        RequestHandler.factory(store, validator),
         bind_and_activate=False,
     )
 
@@ -151,11 +155,11 @@ def listen_until_enrollment(store, verifier):
         get_tcp_socket_from_systemd(),
         server_side=True,
         # Certs used for server side
-        keyfile=store.get_private_key('server'),
-        certfile=store.get_certificate('selfsigned'),
+        keyfile=store.get_private_key_path('server'),
+        certfile=store.get_certificate_path('selfsigned'),
         # For client-side authentication
         cert_reqs=ssl.CERT_REQUIRED,
-        ca_certs=store.get_certificate('ca'),
+        ca_certs=store.get_certificate_path('ca'),
     )
 
     while not store.has_certificate('server'):

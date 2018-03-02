@@ -37,6 +37,10 @@ class _BaseCAValidator(_BaseValidator):
 
 class StoreCAValidator(_BaseCAValidator):
 
+    def __init__(self, store, name='ca'):
+        self.store = store
+        self.name = name
+
     def get_ca_certificate(self):
         return self.store.get_certificate(self.name)
 
