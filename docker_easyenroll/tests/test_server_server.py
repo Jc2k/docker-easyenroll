@@ -1,6 +1,8 @@
 import io
 import json
 import shutil
+import socket
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -100,3 +102,16 @@ class TestRequestHandler(unittest.TestCase):
 
     def test_head(self):
         self.assertRaises(HttpError, self.request_handler.do_GET)
+
+
+class TestSocketUtils(unittest.TestCase):
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
+    def test_get_family(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        assert server.get_family(sock.fileno()) == AF_INET
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
+    def test_get_type(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        assert server.get_type(sock.fileno()) == socket.SOCK_STREAM
