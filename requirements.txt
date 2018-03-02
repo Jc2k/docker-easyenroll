@@ -3,6 +3,7 @@ attrs==17.4.0
 certifi==2018.1.18
 cffi==1.11.5
 chardet==3.0.4
+codecov==2.0.15
 coverage==4.5.1
 cryptography==2.1.4
 flake8==3.5.0
