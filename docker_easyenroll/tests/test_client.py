@@ -1,8 +1,8 @@
 import datetime
+import shutil
 import tempfile
 import unittest
 from unittest import mock
-import shutil
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend

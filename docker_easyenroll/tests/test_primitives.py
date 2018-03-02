@@ -1,6 +1,6 @@
 import shutil
-import unittest
 import tempfile
+import unittest
 
 from docker_easyenroll.primitives import get_private_key
 from docker_easyenroll.store import LocalCertificateStore

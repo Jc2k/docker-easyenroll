@@ -1,16 +1,19 @@
+import io
 import json
-import unittest
-from unittest import mock
 import shutil
 import tempfile
-import io
+import unittest
+from unittest import mock
 
 from cryptography.hazmat.primitives import serialization
 
 from docker_easyenroll.client import get_client_certificate
-from docker_easyenroll.store import LocalCertificateStore
 from docker_easyenroll.server import server
-from docker_easyenroll.server.validators import _BaseValidator, AcceptFirstClientValidator
+from docker_easyenroll.server.validators import (
+    AcceptFirstClientValidator,
+    _BaseValidator,
+)
+from docker_easyenroll.store import LocalCertificateStore
 
 
 class HttpError(Exception):
