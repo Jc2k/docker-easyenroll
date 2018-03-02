@@ -10,7 +10,3 @@ def main():
     store = LocalCertificateStore('/etc/docker/ssl')
     listen_until_enrollment(store, StoreCAValidator(store))
     start_dockerd(store)
-
-
-if __name__ == "__main__":
-    main()
