@@ -118,6 +118,41 @@ class TestSocketUtils(unittest.TestCase):
         assert server.get_type(sock.fileno()) == socket.SOCK_STREAM
 
     @mock.patch.dict(os.environ, {})
+    def test_get_tcp_socket_from_systemd_no_FDNAMES(self):
+        self.assertRaises(ValueError, server.get_tcp_socket_from_systemd)
+
+    @mock.patch.dict(os.environ, {})
+    def test_get_tcp_socket_from_systemd_no_FDS(self):
+        os.environ['LISTEN_FDNAMES'] = 'name1'
+        self.assertRaises(ValueError, server.get_tcp_socket_from_systemd)
+
+    @mock.patch.dict(os.environ, {})
+    def test_get_tcp_socket_from_systemd_FDNAMES_FDS_mismatch(self):
+        os.environ['LISTEN_FDNAMES'] = 'name1:name2:name3'
+        os.environ['LISTEN_FDS'] = '10'
+        self.assertRaises(ValueError, server.get_tcp_socket_from_systemd)
+
+    @mock.patch.dict(os.environ, {})
+    @mock.patch.object(server, 'get_family', return_value=socket.AF_UNIX)
+    @mock.patch.object(server, 'get_type', return_value=socket.SOCK_STREAM)
+    @mock.patch('socket.fromfd')
+    def test_get_tcp_socket_from_systemd_wrong_fam(self, fromfd, get_type, get_family):
+        os.environ['LISTEN_FDNAMES'] = 'name1'
+        os.environ['LISTEN_FDS'] = '1'
+
+        self.assertRaises(ValueError, server.get_tcp_socket_from_systemd)
+
+    @mock.patch.dict(os.environ, {})
+    @mock.patch.object(server, 'get_family', return_value=socket.AF_INET)
+    @mock.patch.object(server, 'get_type', return_value=socket.SOCK_DGRAM)
+    @mock.patch('socket.fromfd')
+    def test_get_tcp_socket_from_systemd_wrong_type(self, fromfd, get_type, get_family):
+        os.environ['LISTEN_FDNAMES'] = 'name1'
+        os.environ['LISTEN_FDS'] = '1'
+
+        self.assertRaises(ValueError, server.get_tcp_socket_from_systemd)
+
+    @mock.patch.dict(os.environ, {})
     @mock.patch.object(server, 'get_family', return_value=socket.AF_INET)
     @mock.patch.object(server, 'get_type', return_value=socket.SOCK_STREAM)
     @mock.patch('socket.fromfd')
