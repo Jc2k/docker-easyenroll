@@ -84,7 +84,7 @@ After=docker-tls.socket
 [Service]
 Environment=PYTHONUNBUFFERED=1
 ExecStart=
-ExecStart=/usr/local/bin/docker-enrollment
+ExecStart=/usr/local/bin/docker-easyenroll
 EOF
 ```
 
