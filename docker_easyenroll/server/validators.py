@@ -1,5 +1,9 @@
+import subprocess
+
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import padding
+
+from docker_easyenroll.store.base import CertificateStore
 
 
 class _BaseValidator(object):
@@ -47,5 +51,25 @@ class StoreCAValidator(_BaseCAValidator):
 
 class GuestInfoCAValidator(_BaseCAValidator):
 
+    def __init__(self, key):
+        '''
+        A validator that uses a CA certificate stored in guestinfo.
+
+        key: A guestinfo key that contains a CA certificate.
+        '''
+        self.key = key
+
+        # Just so we can reuse the deserialize code
+        self.store = CertificateStore()
+
+    def guestinfo(self, key):
+        try:
+            output = subprocess.check_output(
+                ['/usr/bin/vmware-rpctool', 'info-get guestinfo.{}'.format(key)]
+            ).strip()
+        except subprocess.CalledProcessError:
+            raise KeyError(key)
+        return output
+
     def get_ca_certificate(self):
-        return RuntimeError('No known CA')
+        return self.store.deserialize_certificate(self.guestinfo(self.key))
