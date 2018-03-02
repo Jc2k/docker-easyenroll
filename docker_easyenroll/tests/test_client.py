@@ -1,6 +1,8 @@
 import datetime
+import tempfile
 import unittest
 from unittest import mock
+import shutil
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -10,7 +12,7 @@ from cryptography.x509.oid import NameOID
 from docker_easyenroll import client
 from docker_easyenroll.primitives import generate_private_key
 from docker_easyenroll.store import LocalCertificateStore
-from docker_easyenroll.utils import is_signed_by
+from docker_easyenroll.utils import fingerprint, is_signed_by
 
 
 class TestClient(unittest.TestCase):
@@ -78,3 +80,45 @@ class TestClient(unittest.TestCase):
             store.get_certificate_path('client'),
             store.get_private_key_path('client'),
         )
+
+    @mock.patch('docker_easyenroll.client.socket')
+    @mock.patch('docker_easyenroll.client.ssl')
+    @mock.patch('docker_easyenroll.client.requests')
+    def test_enrollment_idempotent(self, requests, ssl, socket):
+        tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmpdir)
+
+        client_key = generate_private_key()
+
+        store = LocalCertificateStore(tmpdir)
+        cert = client.build_certificate_for_server(store, '8.8.8.8', client_key.public_key())
+
+        ssl.wrap_socket.return_value.getpeercert.return_value = \
+            cert.public_bytes(serialization.Encoding.DER)
+
+        cert_fingerprint = client.ensure_server_enrolled(store, '8.8.8.8')
+
+        # Cert shouldn't have changed
+        assert cert_fingerprint == fingerprint(cert)
+
+        assert requests.post.call_count == 0
+
+    @mock.patch('docker_easyenroll.client.socket')
+    @mock.patch('docker_easyenroll.client.ssl')
+    @mock.patch('docker_easyenroll.client.requests')
+    def test_enrollment_invalid_enrollment(self, requests, ssl, socket):
+        tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmpdir)
+
+        client_key = generate_private_key()
+
+        store = LocalCertificateStore(tmpdir)
+        cert = client.build_certificate_for_server(store, '8.8.8.8', client_key.public_key())
+
+        ssl.wrap_socket.return_value.getpeercert.return_value = \
+            cert.public_bytes(serialization.Encoding.DER)
+
+        store = LocalCertificateStore('/tmp')
+        self.assertRaises(RuntimeError, client.ensure_server_enrolled, store, '8.8.8.8')
+
+        assert requests.post.call_count == 0
