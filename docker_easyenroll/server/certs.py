@@ -30,3 +30,5 @@ def get_selfsigned_certificate(store, private_key):
         sign(private_key, hashes.SHA256(), backend)
 
     store.set_certificate('selfsigned', cert)
+
+    return cert
