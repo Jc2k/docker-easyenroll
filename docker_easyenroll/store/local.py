@@ -25,6 +25,7 @@ class LocalCertificateStore(CertificateStore):
 
     def set_private_key(self, name, private_key):
         with open(self.get_private_key_path(name), 'wb') as fp:
+            os.fchmod(fp.fileno(), 0o600)
             fp.write(self.serialize_private_key(private_key))
 
     def get_certificate_path(self, name):
