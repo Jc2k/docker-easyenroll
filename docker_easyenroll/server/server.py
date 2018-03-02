@@ -106,10 +106,13 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         backend = default_backend()
 
-        cert = x509.load_pem_x509_certificate(
-            body['certificate'].encode('utf-8'),
-            backend=backend,
-        )
+        try:
+            cert = x509.load_pem_x509_certificate(
+                body['certificate'].encode('utf-8'),
+                backend=backend,
+            )
+        except ValueError:
+            self.send_error(401, 'Invalid certificate')
 
         if not self.validator.validate(cert):
             self.send_error(401, 'Invalid certificate')
