@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from docker_easyenroll.server import listen_until_enrollment
-from docker_easyenroll.server.docker import start_dockerd
+from docker_easyenroll.server.dockerd import start_dockerd
 from docker_easyenroll.server.validators import StoreCAValidator
 from docker_easyenroll.store import LocalCertificateStore
 
