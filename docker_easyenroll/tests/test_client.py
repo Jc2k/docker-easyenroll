@@ -2,15 +2,15 @@ import datetime
 import unittest
 from unittest import mock
 
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.backends import default_backend
 from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.x509.oid import NameOID
 
-from docker_easyenroll.store import LocalCertificateStore
-from docker_easyenroll.primitives import generate_private_key
-from docker_easyenroll.utils import is_signed_by
 from docker_easyenroll import client
+from docker_easyenroll.primitives import generate_private_key
+from docker_easyenroll.store import LocalCertificateStore
+from docker_easyenroll.utils import is_signed_by
 
 
 class TestClient(unittest.TestCase):

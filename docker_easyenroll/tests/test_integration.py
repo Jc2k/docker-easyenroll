@@ -1,17 +1,17 @@
-import unittest
-from unittest import mock
 import shutil
+import socket
 import tempfile
 import threading
 import time
-import socket
+import unittest
+from unittest import mock
 
-from docker_easyenroll.server.server import listen_until_enrollment
-from docker_easyenroll.store import LocalCertificateStore
-from docker_easyenroll.server.validators import StoreCAValidator
+from docker_easyenroll.ca import get_ca_certificate
 from docker_easyenroll.client import ensure_server_enrolled
 from docker_easyenroll.exceptions import TransientError
-from docker_easyenroll.ca import get_ca_certificate
+from docker_easyenroll.server.server import listen_until_enrollment
+from docker_easyenroll.server.validators import StoreCAValidator
+from docker_easyenroll.store import LocalCertificateStore
 
 
 class TestIntegration(unittest.TestCase):

@@ -14,7 +14,7 @@ from cryptography.x509.oid import NameOID
 from .ca import get_ca_certificate
 from .exceptions import TransientError
 from .primitives import get_private_key
-from .utils import build_key_usage, is_signed_by, fingerprint
+from .utils import build_key_usage, fingerprint, is_signed_by
 
 
 def get_client_certificate(store):

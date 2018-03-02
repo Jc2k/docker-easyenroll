@@ -1,17 +1,16 @@
 import ctypes
-from ctypes.util import find_library
 import http.server
 import json
 import os
 import socket
 import ssl
+from ctypes.util import find_library
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
 from docker_easyenroll.primitives import get_private_key
 from docker_easyenroll.server.certs import get_selfsigned_certificate
-
 
 _libc_name = find_library('c')
 if _libc_name is not None:
