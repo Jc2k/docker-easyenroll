@@ -8,12 +8,6 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import oid
 
 
-def random_subject_name(prefix):
-    return x509.Name([
-        x509.NameAttribute(oid.NameOID.COMMON_NAME, prefix + str(uuid.uuid4())),
-    ])
-
-
 def build_key_usage(key_usage):
     possible_uses = [
         'content_commitment', 'key_encipherment', 'data_encipherment',
