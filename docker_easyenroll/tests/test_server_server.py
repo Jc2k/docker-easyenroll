@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import shutil
 import socket
 import sys
@@ -109,9 +110,24 @@ class TestSocketUtils(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
     def test_get_family(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        assert server.get_family(sock.fileno()) == AF_INET
+        assert server.get_family(sock.fileno()) == socket.AF_INET
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
     def test_get_type(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         assert server.get_type(sock.fileno()) == socket.SOCK_STREAM
+
+    @mock.patch.dict(os.environ, {})
+    @mock.patch.object(server, 'get_family', return_value=socket.AF_INET)
+    @mock.patch.object(server, 'get_type', return_value=socket.SOCK_STREAM)
+    @mock.patch('socket.fromfd')
+    def test_get_tcp_socket_from_systemd(self, fromfd, get_type, get_family):
+        os.environ['LISTEN_FDNAMES'] = 'name1'
+        os.environ['LISTEN_FDS'] = '1'
+
+        sentinel = fromfd.return_value = mock.MagicMock()
+
+        sock = server.get_tcp_socket_from_systemd()
+        assert sock == sentinel
+
+        fromfd.assert_called_with(3, socket.AF_INET, socket.SOCK_STREAM)

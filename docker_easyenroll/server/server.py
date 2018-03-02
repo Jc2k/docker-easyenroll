@@ -73,7 +73,7 @@ def get_tcp_socket_from_systemd():
             continue
 
         sock = socket.fromfd(
-            get_tcp_socket_from_systemd(),
+            i,
             socket.AF_INET,
             socket.SOCK_STREAM,
         )
