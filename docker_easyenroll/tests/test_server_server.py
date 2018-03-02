@@ -102,7 +102,7 @@ class TestRequestHandler(unittest.TestCase):
         self.assertRaises(HttpError, self.request_handler.do_GET)
 
     def test_head(self):
-        self.assertRaises(HttpError, self.request_handler.do_GET)
+        self.assertRaises(HttpError, self.request_handler.do_HEAD)
 
 
 class TestSocketUtils(unittest.TestCase):
