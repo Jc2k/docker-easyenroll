@@ -1,6 +1,6 @@
 # docker-easyenroll
 
-[![PyPI](https://img.shields.io/pypi/v/docker_easyenroll.svg)](https://pypi.python.org/pypi/docker_easyenroll) [![Codecov](https://img.shields.io/codecov/c/github/Jc2k/docker_easyenroll.svg)](https://codecov.io/gh/Jc2k/docker_easyenroll)
+[![PyPI](https://img.shields.io/pypi/v/docker_easyenroll.svg)](https://pypi.python.org/pypi/docker_easyenroll) [![Codecov](https://img.shields.io/codecov/c/github/Jc2k/docker-easyenroll.svg)](https://codecov.io/gh/Jc2k/docker-easyenroll)
 
 A framework for implementing Docker TLS enrollment schemes, including an SSH style 'pair on first connect' scheme.
 
