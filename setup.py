@@ -9,9 +9,12 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'requests>=2.13.0',
         'cryptography',
     ],
+    extras_require={
+        'client':  ["requests>=2.13.0"],
+        'server': [],
+    },
     entry_points='''
         [console_scripts]
         docker-easyenroll = docker_easyenroll.scripts.docker_enrollment:main
