@@ -11,7 +11,47 @@ from docker_easyenroll.server import validators
 from docker_easyenroll.store import LocalCertificateStore
 
 
-class TestGuestInfoValidator(unittest.TestCase):
+class TestBaseCAValidator(unittest.TestCase):
+
+    def test_not_implemented(self):
+        validator = validators._BaseCAValidator()
+        self.assertRaises(NotImplementedError, validator.get_ca_certificate)
+
+
+class TestStoreCAValidator(unittest.TestCase):
+
+    def test_valid_cert(self):
+        tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmpdir)
+
+        store = LocalCertificateStore(tmpdir)
+        _, ca = get_ca_certificate(store)
+        _, client = get_client_certificate(store)
+
+        validator = validators.StoreCAValidator(store)
+        assert validator.validate(client)
+
+    def test_invalid_cert(self):
+        # CA 1 + client 1
+        tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmpdir)
+
+        store = LocalCertificateStore(tmpdir)
+        _, ca = get_ca_certificate(store)
+        _, client = get_client_certificate(store)
+
+        # CA 2
+        tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmpdir)
+
+        store = LocalCertificateStore(tmpdir)
+        _, ca = get_ca_certificate(store)
+
+        validator = validators.StoreCAValidator(store)
+        assert not validator.validate(client)
+
+
+class TestGuestInfoCAValidator(unittest.TestCase):
 
     def test_happy_path(self):
         tmpdir = tempfile.mkdtemp()

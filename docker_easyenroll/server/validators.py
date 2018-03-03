@@ -21,7 +21,7 @@ class AcceptFirstClientValidator(_BaseValidator):
 class _BaseCAValidator(_BaseValidator):
 
     def get_ca_certificate(self):
-        return RuntimeError('No known CA')
+        raise NotImplementedError(self.get_ca_certificate)
 
     def validate(self, certificate):
         ca = self.get_ca_certificate()
