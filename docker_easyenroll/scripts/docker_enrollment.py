@@ -13,6 +13,14 @@ from docker_easyenroll.store import LocalCertificateStore
 
 
 def main(argv=None):
+    argv = argv if argv is not None else sys.argv
+
+    if '--' in argv:
+        idx = argv.index("--")
+        argv, extra = argv[:idx], argv[idx + 1:]
+    else:
+        extra = []
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--storedir', '-s', action='store')
     parser.add_argument('--guestinfoca', action='store')
@@ -26,4 +34,4 @@ def main(argv=None):
         validator = StoreCAValidator(store)
 
     listen_until_enrollment(store, validator)
-    start_dockerd(store)
+    start_dockerd(store, extra)
