@@ -69,8 +69,8 @@ class GuestInfoCAValidator(_BaseCAValidator):
 
         key: A guestinfo key that contains a CA certificate.
         '''
-        self.store = store
-        self.key = key
+        self.ca_certificate = store.deserialize_certificate(self.guestinfo(key))
+        store.set_certificate('ca', self.ca_certificate)
 
     def guestinfo(self, key):
         try:
@@ -82,6 +82,4 @@ class GuestInfoCAValidator(_BaseCAValidator):
         return output
 
     def get_ca_certificate(self):
-        ca_certificate = self.store.deserialize_certificate(self.guestinfo(self.key))
-        self.store.set_certificate('ca', ca_certificate)
-        return ca_certificate
+        return self.ca_certificate

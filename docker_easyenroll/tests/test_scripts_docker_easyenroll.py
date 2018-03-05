@@ -12,14 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import shutil
+import tempfile
 import unittest
 from unittest import mock
 
+from cryptography.hazmat.primitives import serialization
+
+from docker_easyenroll.ca import get_ca_certificate
 from docker_easyenroll.scripts import docker_enrollment
 from docker_easyenroll.server.validators import (
     GuestInfoCAValidator,
     StoreCAValidator,
 )
+from docker_easyenroll.store import LocalCertificateStore
 
 
 class TestEntrypoint(unittest.TestCase):
@@ -40,7 +46,16 @@ class TestEntrypoint(unittest.TestCase):
     @mock.patch('docker_easyenroll.scripts.docker_enrollment.listen_until_enrollment')
     @mock.patch('docker_easyenroll.scripts.docker_enrollment.start_dockerd')
     def test_entrypoint_guestinfoca(self, a, listen_until_enrollment, c):
-        docker_enrollment.main(['--guestinfoca', 'ca'])
+        client_tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, client_tmpdir)
+        client_store = LocalCertificateStore(client_tmpdir)
+
+        _, ca = get_ca_certificate(client_store)
+
+        with mock.patch('docker_easyenroll.server.validators.subprocess') as subprocess:
+            subprocess.check_output.return_value = ca.public_bytes(serialization.Encoding.PEM)
+            docker_enrollment.main(['--guestinfoca', 'ca'])
+
         assert a.call_count == 1
 
         assert listen_until_enrollment.call_count == 1

@@ -79,10 +79,10 @@ class TestGuestInfoCAValidator(unittest.TestCase):
         self.addCleanup(shutil.rmtree, server_tmpdir)
         server_store = LocalCertificateStore(server_tmpdir)
 
-        validator = validators.GuestInfoCAValidator(server_store, 'ca')
         with mock.patch('docker_easyenroll.server.validators.subprocess') as subprocess:
             subprocess.check_output.return_value = ca.public_bytes(serialization.Encoding.PEM)
 
+            validator = validators.GuestInfoCAValidator(server_store, 'ca')
             assert validator.validate(cert)
 
             subprocess.check_output.assert_called_with([
