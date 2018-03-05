@@ -68,14 +68,18 @@ class TestStoreCAValidator(unittest.TestCase):
 class TestGuestInfoCAValidator(unittest.TestCase):
 
     def test_happy_path(self):
-        tmpdir = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, tmpdir)
+        client_tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, client_tmpdir)
+        client_store = LocalCertificateStore(client_tmpdir)
 
-        store = LocalCertificateStore(tmpdir)
-        _, ca = get_ca_certificate(store)
-        _, cert = get_client_certificate(store)
+        _, ca = get_ca_certificate(client_store)
+        _, cert = get_client_certificate(client_store)
 
-        validator = validators.GuestInfoCAValidator('ca')
+        server_tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, server_tmpdir)
+        server_store = LocalCertificateStore(server_tmpdir)
+
+        validator = validators.GuestInfoCAValidator(server_store, 'ca')
         with mock.patch('docker_easyenroll.server.validators.subprocess') as subprocess:
             subprocess.check_output.return_value = ca.public_bytes(serialization.Encoding.PEM)
 

@@ -28,7 +28,7 @@ from docker_easyenroll.store import LocalCertificateStore
 
 
 def main(argv=None):
-    argv = argv if argv is not None else sys.argv
+    argv = argv if argv is not None else sys.argv[1:]
 
     if '--' in argv:
         idx = argv.index("--")
@@ -37,14 +37,14 @@ def main(argv=None):
         extra = []
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--storedir', '-s', action='store')
+    parser.add_argument('--storedir', '-s', action='store', default="/etc/docker/ssl")
     parser.add_argument('--guestinfoca', action='store')
     args = parser.parse_args(sys.argv if argv is None else argv)
 
     store = LocalCertificateStore(args.storedir)
 
     if args.guestinfoca:
-        validator = GuestInfoCAValidator(args.guestinfoca)
+        validator = GuestInfoCAValidator(store, args.guestinfoca)
     else:
         validator = StoreCAValidator(store)
 

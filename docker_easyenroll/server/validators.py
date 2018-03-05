@@ -17,8 +17,6 @@ import subprocess
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import padding
 
-from docker_easyenroll.store.base import CertificateStore
-
 
 class _BaseValidator(object):
 
@@ -65,16 +63,14 @@ class StoreCAValidator(_BaseCAValidator):
 
 class GuestInfoCAValidator(_BaseCAValidator):
 
-    def __init__(self, key):
+    def __init__(self, store, key):
         '''
         A validator that uses a CA certificate stored in guestinfo.
 
         key: A guestinfo key that contains a CA certificate.
         '''
+        self.store = store
         self.key = key
-
-        # Just so we can reuse the deserialize code
-        self.store = CertificateStore()
 
     def guestinfo(self, key):
         try:
@@ -86,4 +82,6 @@ class GuestInfoCAValidator(_BaseCAValidator):
         return output
 
     def get_ca_certificate(self):
-        return self.store.deserialize_certificate(self.guestinfo(self.key))
+        ca_certificate = self.store.deserialize_certificate(self.guestinfo(self.key))
+        self.store.set_certificate('ca', ca_certificate)
+        return ca_certificate
